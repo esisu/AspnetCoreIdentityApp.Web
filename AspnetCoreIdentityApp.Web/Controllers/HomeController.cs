@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using AspnetCoreIdentityApp.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
+using AspnetCoreIdentityApp.Web.Extensions;
 
 namespace AspnetCoreIdentityApp.Web.Controllers
 {
@@ -13,10 +14,13 @@ namespace AspnetCoreIdentityApp.Web.Controllers
 
         private readonly UserManager<AppUser> _userManager;
 
-        public HomeController(ILogger<HomeController> logger, UserManager<AppUser> userManager)
+        private readonly SignInManager<AppUser> _signInManager;
+
+        public HomeController(ILogger<HomeController> logger, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager)
         {
             _logger = logger;
             _userManager = userManager;
+            _signInManager = signInManager;
         }
 
         public IActionResult Index()
@@ -49,7 +53,7 @@ namespace AspnetCoreIdentityApp.Web.Controllers
                 PhoneNumber = request.Phone,
                 Email = request.Email,
             }, request.ConfirmPassword);
-            
+
             if (identityResult.Succeeded)
             {
                 TempData["SuccessMessage"] = "Üyelik Kayıt işlemi başarı ile gerçekleşmiştir.";
@@ -57,11 +61,8 @@ namespace AspnetCoreIdentityApp.Web.Controllers
                 return RedirectToAction(nameof(HomeController.SignUp));
             }
 
-            foreach (var result in identityResult.Errors)
-            {
-                ModelState.AddModelError(String.Empty, result.Description);
-            }
-            
+            ModelState.AddModalErrorList(identityResult.Errors.Select(x => x.Description).ToList());
+
             return View();
         }
 
@@ -73,6 +74,32 @@ namespace AspnetCoreIdentityApp.Web.Controllers
 
         public IActionResult SignIn()
         {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SignIn(SignInViewModel request, string returnUrl = null)
+        {
+
+            returnUrl = returnUrl ?? Url.Action("Index", "Home");
+
+            var hasUser = await _userManager.FindByEmailAsync(request.Email);
+
+            if (hasUser == null)
+            {
+                ModelState.AddModelError(string.Empty, "Email veya Şifre Yanlış");
+                return View();
+            }
+
+            var result = await _signInManager.PasswordSignInAsync(hasUser, request.Password, request.RememberMe, false);
+
+            if (result.Succeeded)
+            {
+                return Redirect(returnUrl);
+            }
+
+            ModelState.AddModalErrorList(new List<string> { "Email veya Şifre Yanlış" });
+
             return View();
         }
 
