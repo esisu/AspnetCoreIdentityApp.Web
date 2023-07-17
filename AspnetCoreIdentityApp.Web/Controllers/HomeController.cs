@@ -5,6 +5,7 @@ using AspnetCoreIdentityApp.Web.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using AspnetCoreIdentityApp.Web.Extensions;
 using Microsoft.EntityFrameworkCore;
+using AspnetCoreIdentityApp.Web.Services;
 
 namespace AspnetCoreIdentityApp.Web.Controllers
 {
@@ -17,11 +18,13 @@ namespace AspnetCoreIdentityApp.Web.Controllers
 
         private readonly SignInManager<AppUser> _signInManager;
 
-        public HomeController(ILogger<HomeController> logger, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager)
+        IEmailService _emailService;
+        public HomeController(ILogger<HomeController> logger, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, IEmailService emailService)
         {
             _logger = logger;
             _userManager = userManager;
             _signInManager = signInManager;
+            _emailService = emailService;
         }
 
         public IActionResult Index()
@@ -81,7 +84,7 @@ namespace AspnetCoreIdentityApp.Web.Controllers
         [HttpPost]
         public async Task<IActionResult> SignIn(SignInViewModel request, string returnUrl = null)
         {
-            
+
 
             returnUrl = returnUrl ?? Url.Action("Index", "Home");
 
@@ -105,9 +108,9 @@ namespace AspnetCoreIdentityApp.Web.Controllers
                 ModelState.AddModalErrorList(new List<string>() { "Hesabınız kilitlenmiştir. 3 Dakika boyunca giriş yapamazsınız." });
                 return View();
             }
-            
+
             ModelState.AddModalErrorList(new List<string> { $"Email veya Şifre Yanlış.", $"Başarısız giriş sayısı : {await _userManager.GetAccessFailedCountAsync(hasUser)}" });
-            
+
             return View();
         }
 
@@ -121,16 +124,16 @@ namespace AspnetCoreIdentityApp.Web.Controllers
         public async Task<IActionResult> ForgetPassword(ForgetPasswordViewModel request)
         {
             AppUser hasUser = await _userManager.FindByEmailAsync(request.Email);
-            if (hasUser==null)
+            if (hasUser == null)
             {
-                ModelState.AddModelError(string.Empty,"Bu Email Adresine ait kullanıcı bulunanmamıştır");
+                ModelState.AddModelError(string.Empty, "Bu Email Adresine ait kullanıcı bulunanmamıştır");
                 return View();
             }
 
             string passwordForgetToken = await _userManager.GeneratePasswordResetTokenAsync(hasUser);
 
             string passwordForgetLink = Url.Action("ResetPassword", "Home",
-                new { userId = hasUser.Id, token = passwordForgetToken });
+                new { userId = hasUser.Id, token = passwordForgetToken }, HttpContext.Request.Scheme);
 
 
 
@@ -138,11 +141,13 @@ namespace AspnetCoreIdentityApp.Web.Controllers
 
             //Email Service
 
+            await _emailService.SendForgetPasswordEmail(passwordForgetLink, hasUser.Email);
+
 
             TempData["SuccessMessage"] = "Şifre yenileme linki eposta adresinize gönderilmiştir.";
 
             return RedirectToAction(nameof(ForgetPassword));
-            
+
         }
 
 
