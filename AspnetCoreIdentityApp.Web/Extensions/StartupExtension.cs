@@ -1,6 +1,7 @@
 ﻿using AspnetCoreIdentityApp.Web.CustomValidators;
 using AspnetCoreIdentityApp.Web.Localizations;
 using AspnetCoreIdentityApp.Web.Models;
+using Microsoft.AspNetCore.Identity;
 
 namespace AspnetCoreIdentityApp.Web.Extensions
 {
@@ -8,6 +9,12 @@ namespace AspnetCoreIdentityApp.Web.Extensions
     {
         public static void AddIdentityWithExtension(this IServiceCollection service)
         {
+
+            service.Configure<DataProtectionTokenProviderOptions>(options =>
+            {
+                options.TokenLifespan = TimeSpan.FromHours(2);
+            });
+
             service.AddIdentity<AppUser, AppRole>(
                 option =>
                 {
@@ -19,8 +26,15 @@ namespace AspnetCoreIdentityApp.Web.Extensions
                     option.Password.RequireLowercase = true;
                     option.Password.RequireUppercase = false;
                     option.Password.RequireDigit = false;
+
+                    option.Lockout.DefaultLockoutTimeSpan=TimeSpan.FromMinutes(3);
+                    option.Lockout.MaxFailedAccessAttempts = 3;
                 }
-            ).AddPasswordValidator<PasswordValidator>().AddUserValidator<UserValidator>().AddErrorDescriber<LocalizationIdentityDescriber>().AddEntityFrameworkStores<AppDbContext>();
+            ).AddPasswordValidator<PasswordValidator>()
+                .AddUserValidator<UserValidator>()
+                .AddErrorDescriber<LocalizationIdentityDescriber>()
+                .AddEntityFrameworkStores<AppDbContext>()
+                .AddDefaultTokenProviders();
         }
     }
 }

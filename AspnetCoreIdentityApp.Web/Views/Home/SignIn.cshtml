@@ -4,6 +4,12 @@
     Layout = "_Layout";
 }
 
+@section Scripts
+    {
+    @await Html.PartialAsync("_ValidationScriptsPartial");
+}
+
+
 <div class="row">
     <div class="col-md-4 offset-md-4">
         <h1>Üye Girişi</h1>
@@ -11,7 +17,8 @@
         <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert">
         </div>
 
-        <form asp-controller="Home" asp-action="SignIn" method="post">
+        @*<form asp-controller="Home" asp-action="SignIn" asp-route-returnurl="@Context.Request.Query["returnurl"]" method="post">*@
+        <form method="post">
             <div class=" mb-3">
                 <label for="Email" class="col-form-label" asp-for="Email"></label>
                 <div class="col-md-8">
@@ -33,6 +40,8 @@
                 <label class="form-check-label" asp-for="RememberMe">Beni Hatırla</label>
             </div>
             <button type="submit" class="btn btn-primary">Giriş Yap</button>
+            <a asp-controller="Home" asp-action="ForgetPassword" class="btn btn-link">Şifremi Unuttum</a>
+
         </form>
 
     </div>
