@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using AspnetCoreIdentityApp.Web.Extensions;
 using Microsoft.EntityFrameworkCore;
 using AspnetCoreIdentityApp.Web.Services;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace AspnetCoreIdentityApp.Web.Controllers
 {
@@ -134,9 +135,6 @@ namespace AspnetCoreIdentityApp.Web.Controllers
 
             string passwordForgetLink = Url.Action("ResetPassword", "Home",
                 new { userId = hasUser.Id, token = passwordForgetToken }, HttpContext.Request.Scheme);
-
-
-
             //örnek link : https://localhost:7257?userId=123123&token=12312d21d12
 
             //Email Service
@@ -150,6 +148,51 @@ namespace AspnetCoreIdentityApp.Web.Controllers
 
         }
 
+
+        public async Task<IActionResult> ResetPassword(string userId, string token)
+        {
+            TempData["userId"] = userId;
+            TempData["token"] = token;
+            return View();
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel request)
+        {
+            var userId = TempData["userId"];
+            var token = TempData["token"];
+
+
+            if (userId==null || token==null)
+            {
+                throw new Exception("Bir hata meydana geldi");
+            }
+
+            var hasUser = await _userManager.FindByIdAsync(userId.ToString());
+
+            if (hasUser == null)
+            {
+                ModelState.AddModelError(String.Empty, "Kullanıcı Bulunamadı");
+                return View();
+            }
+
+
+            IdentityResult result = await _userManager.ResetPasswordAsync(hasUser, token.ToString(), request.Password);
+
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] = "Şifreniz yenilenmiştir";
+            }
+
+            else
+            {
+                ModelState.AddModalErrorList(result.Errors.Select(x => x.Description).ToList());
+
+            }
+
+            return View();
+        }
 
     }
 }

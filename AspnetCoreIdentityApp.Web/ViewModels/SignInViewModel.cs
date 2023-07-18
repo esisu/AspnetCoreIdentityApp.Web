@@ -20,10 +20,12 @@ namespace AspnetCoreIdentityApp.Web.ViewModels
         [Required(ErrorMessage = "Email alanını Lütfen Boş Bırakmayınız")]
         public string Email { get; set; }
 
+        [DataType(DataType.Password)]
         [Required(ErrorMessage = "Şifre alanını Lütfen Boş Bırakmayınız")]
         [Display(Name = "Şifre : ")]
         public string Password { get; set; }
 
+        [DataType(DataType.Password)]
         [Display(Name = "Beni Hatırla ")]
         public bool RememberMe { get; set; }
     }
