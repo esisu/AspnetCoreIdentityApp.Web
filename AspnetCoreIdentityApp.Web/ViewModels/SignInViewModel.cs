@@ -25,7 +25,7 @@ namespace AspnetCoreIdentityApp.Web.ViewModels
         [Display(Name = "Şifre : ")]
         public string Password { get; set; }
 
-        [DataType(DataType.Password)]
+        
         [Display(Name = "Beni Hatırla ")]
         public bool RememberMe { get; set; }
     }

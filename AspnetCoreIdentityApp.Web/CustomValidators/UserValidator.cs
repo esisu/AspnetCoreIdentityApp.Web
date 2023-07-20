@@ -22,7 +22,6 @@ namespace AspnetCoreIdentityApp.Web.CustomValidators
             }
 
             return Task.FromResult(IdentityResult.Success);
-
         }
     }
 }

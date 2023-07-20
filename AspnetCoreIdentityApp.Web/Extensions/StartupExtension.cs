@@ -9,7 +9,6 @@ namespace AspnetCoreIdentityApp.Web.Extensions
     {
         public static void AddIdentityWithExtension(this IServiceCollection service)
         {
-
             service.Configure<DataProtectionTokenProviderOptions>(options =>
             {
                 options.TokenLifespan = TimeSpan.FromHours(2);

@@ -4,6 +4,7 @@ namespace AspnetCoreIdentityApp.Web.Localizations
 {
     public class LocalizationIdentityDescriber : IdentityErrorDescriber
     {
+
         public override IdentityError DuplicateUserName(string userName)
         {
             return new IdentityError()
@@ -33,5 +34,6 @@ namespace AspnetCoreIdentityApp.Web.Localizations
             };
             //return base.PasswordTooShort(length);
         }
+
     }
 }
