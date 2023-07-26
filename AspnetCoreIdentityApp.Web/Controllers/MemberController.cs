@@ -170,5 +170,10 @@ namespace AspnetCoreIdentityApp.Web.Controllers
             return View(userEditViewModel);
         }
 
+        public async Task<IActionResult> AccessDenied(string ReturnUrl)
+        {
+            ViewBag.message = "Erişmek istediğiniz sayfaya yetkiniz bulunmamaktadır.";
+            return View();
+        }
     }
 }

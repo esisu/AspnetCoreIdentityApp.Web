@@ -3,10 +3,12 @@ using AspnetCoreIdentityApp.Web.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using AspnetCoreIdentityApp.Web.Extensions;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace AspnetCoreIdentityApp.Web.Areas.Admin.Controllers
 {
+    [Authorize(Roles = "Admin")]
     [Area("Admin")]
     public class RolesController : Controller
     {
@@ -29,11 +31,13 @@ namespace AspnetCoreIdentityApp.Web.Areas.Admin.Controllers
             return View(roles);
         }
 
+        [Authorize(Roles= "Admin,Rol-Yonetimi")]
         public IActionResult RoleCreate()
         {
             return View();
         }
 
+        [Authorize(Roles = "Admin,Rol-Yonetimi")]
         [HttpPost]
         public async Task<IActionResult> RoleCreate(RoleCreateViewModel request)
         {
@@ -50,6 +54,7 @@ namespace AspnetCoreIdentityApp.Web.Areas.Admin.Controllers
             return RedirectToAction(nameof(RolesController.Index));
         }
 
+        [Authorize(Roles = "Admin,Rol-Yonetimi")]
         public async Task<IActionResult> RoleUpdate(string id)
         {
             var roletoupdate = await _roleManager.FindByIdAsync(id);
@@ -66,6 +71,7 @@ namespace AspnetCoreIdentityApp.Web.Areas.Admin.Controllers
             });
         }
 
+        [Authorize(Roles = "Admin,Rol-Yonetimi")]
         [HttpPost]
         public async Task<IActionResult> RoleUpdate(RoleUpdateViewModel request)
         {
@@ -92,10 +98,11 @@ namespace AspnetCoreIdentityApp.Web.Areas.Admin.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Admin,Rol-Yonetimi")]
         public async Task<IActionResult> RoleDelete(string id)
         {
             var roletoDelete = await _roleManager.FindByIdAsync(id);
-            
+
             if (roletoDelete == null)
             {
                 throw new Exception("Silinecek rol bulunamamıştır");
@@ -105,7 +112,7 @@ namespace AspnetCoreIdentityApp.Web.Areas.Admin.Controllers
 
             if (!result.Succeeded)
             {
-                throw new Exception(result.Errors.Select(x=>x.Description).First());
+                throw new Exception(result.Errors.Select(x => x.Description).First());
             }
 
             TempData["SuccessMessage"] = "Silme tamamlandı";
@@ -116,17 +123,19 @@ namespace AspnetCoreIdentityApp.Web.Areas.Admin.Controllers
         public async Task<IActionResult> AssignRoleToUser(string id)
         {
             var currentUser = await _userManager.FindByIdAsync(id);
-            
+
+            ViewBag.userId = id;
+
             var roles = await _roleManager.Roles.ToListAsync();
 
             var userRoles = await _userManager.GetRolesAsync(currentUser);
 
             var roleViewModelList = new List<AssignRoleToUserViewModel>();
-            
+
             foreach (var role in roles)
             {
                 var AssignToRoleUserviewModel = new AssignRoleToUserViewModel() { Id = role.Id, Name = role.Name };
-                
+
                 if (userRoles.Contains(role.Name))
                 {
                     AssignToRoleUserviewModel.Exist = true;
@@ -138,11 +147,25 @@ namespace AspnetCoreIdentityApp.Web.Areas.Admin.Controllers
             return View(roleViewModelList);
         }
 
-
         [HttpPost]
-        public async Task<IActionResult> AssignRoleToUser(List<AssignRoleToUserViewModel> request)
+        public async Task<IActionResult> AssignRoleToUser(string userId, List<AssignRoleToUserViewModel> requestList)
         {
-            return View();
+
+            var user = await _userManager.FindByIdAsync(userId);
+
+            foreach (var role in requestList)
+            {
+                if (role.Exist)
+                {
+                    await _userManager.AddToRoleAsync(user, role.Name);
+                }
+                else
+                {
+                    await _userManager.RemoveFromRoleAsync(user, role.Name);
+                }
+            }
+
+            return RedirectToAction("UserList","Home");
         }
 
     }
