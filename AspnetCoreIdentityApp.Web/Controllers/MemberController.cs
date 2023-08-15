@@ -1,4 +1,5 @@
-﻿using AspnetCoreIdentityApp.Web.Extensions;
+﻿using System.Security.Claims;
+using AspnetCoreIdentityApp.Web.Extensions;
 using AspnetCoreIdentityApp.Web.Models;
 using AspnetCoreIdentityApp.Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.FileProviders;
 using System.Transactions;
+using Microsoft.Build.ObjectModelRemoting;
 
 namespace AspnetCoreIdentityApp.Web.Controllers
 {
@@ -27,6 +29,9 @@ namespace AspnetCoreIdentityApp.Web.Controllers
 
         public async Task<IActionResult> Index()
         {
+
+            List<Claim> claims = HttpContext.User.Claims.ToList();
+
             var currentUser = await _userManager.FindByNameAsync(User.Identity!.Name!);
 
             UserViewModel model = new UserViewModel()
@@ -175,5 +180,27 @@ namespace AspnetCoreIdentityApp.Web.Controllers
             ViewBag.message = "Erişmek istediğiniz sayfaya yetkiniz bulunmamaktadır.";
             return View();
         }
+
+        public IActionResult Claims()
+        {
+
+            var userClaimList = User.Claims.Select(x => new ClaimViewModel()
+            {
+                Type = x.Type,
+                Issuer = x.Issuer,
+                Value = x.Value
+            }).ToList();
+
+            return View(userClaimList);
+        }
+
+        [Authorize(Policy = "AnkaraPolicy")]
+        public IActionResult AnkaraPage()
+        {
+            return View();
+        }
+
+
+
     }
 }
