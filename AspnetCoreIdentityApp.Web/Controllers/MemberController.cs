@@ -200,6 +200,11 @@ namespace AspnetCoreIdentityApp.Web.Controllers
             return View();
         }
 
+        [Authorize(Policy = "ExchangePolicy")]
+        public IActionResult ExchangePage()
+        {
+            return View();
+        }
 
 
     }

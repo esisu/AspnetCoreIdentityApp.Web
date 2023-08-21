@@ -2,8 +2,10 @@ using AspnetCoreIdentityApp.Web.ClaimProvider;
 using AspnetCoreIdentityApp.Web.Extensions;
 using AspnetCoreIdentityApp.Web.Models;
 using AspnetCoreIdentityApp.Web.OptionsModels;
+using AspnetCoreIdentityApp.Web.Requirements;
 using AspnetCoreIdentityApp.Web.Services;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
@@ -30,11 +32,18 @@ builder.Services.AddScoped<IEmailService, EmailManager>();
 
 builder.Services.AddScoped<IClaimsTransformation, UserClaimProvider>();
 
+builder.Services.AddScoped<IAuthorizationHandler, ExchangeExpireRequirementHandler>();
+
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AnkaraPolicy", policy =>
     {
         policy.RequireClaim("city", "Ankara");
+    });
+
+    options.AddPolicy("ExchangePolicy", policy =>
+    {
+        policy.AddRequirements(new ExchangeExpireRequirement());
     });
 });
 
